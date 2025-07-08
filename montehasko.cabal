@@ -1,0 +1,61 @@
+cabal-version: 3.4
+name: montehasko
+version: 0.1.0.0
+synopsis: MCMC in Haskell
+-- description:
+license: BSD-3-Clause
+license-file: LICENSE
+author: Hiromi Ishii
+maintainer: konn.jinro@gmail.com
+-- copyright:
+category: Math
+build-type: Simple
+extra-doc-files: CHANGELOG.md
+
+-- extra-source-files:
+common defaults
+  ghc-options:
+    -Wall
+    -Wcompat
+    -Widentities
+    -Wincomplete-record-updates
+    -Wincomplete-uni-patterns
+    -Wmissing-export-lists
+    -Wmissing-home-modules
+    -Wpartial-fields
+    -Wredundant-constraints
+
+  build-depends: random
+  default-language: GHC2024
+  build-depends: base >=4.18 && <5
+  default-extensions:
+    OverloadedLabels
+    OverloadedRecordDot
+    RecordWildCards
+
+library
+  import: defaults
+  -- cabal-gild: discover src --exclude=src/**/Internal.hs
+  exposed-modules:
+    Math.Statistics.MonteCarlo.Integration
+    Math.Statistics.MonteCarlo.Pi
+
+  -- cabal-gild: discover src --include=src/**/Internal.hs
+  other-modules:
+  hs-source-dirs: src
+  build-depends:
+    generic-lens,
+    lens,
+    strict,
+    transformers,
+
+test-suite montehasko-test
+  import: defaults
+  default-language: GHC2024
+  -- cabal-gild: discover test --exclude=test/Main.hs
+  other-modules:
+  -- other-extensions:
+  type: exitcode-stdio-1.0
+  hs-source-dirs: test
+  main-is: Main.hs
+  build-depends: montehasko
