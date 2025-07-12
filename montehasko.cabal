@@ -66,7 +66,10 @@ test-suite montehasko-test
   import: defaults
   default-language: GHC2024
   -- cabal-gild: discover test --exclude=test/Main.hs
-  other-modules: Math.Statistics.RandomVarSpec
+  other-modules:
+    Math.Statistics.MonteCarlo.SamplerSpec
+    Math.Statistics.RandomVarSpec
+
   -- other-extensions:
   type: exitcode-stdio-1.0
   hs-source-dirs: test
@@ -77,9 +80,13 @@ test-suite montehasko-test
     -with-rtsopts=-N
 
   -- cabal-gild: discover test --exclude=test/Main.hs
-  other-modules: Math.Statistics.RandomVarSpec
+  other-modules:
+    Math.Statistics.MonteCarlo.SamplerSpec
+    Math.Statistics.RandomVarSpec
+
   build-depends:
     falsify,
+    foldl,
     montehasko,
     random,
     tasty,

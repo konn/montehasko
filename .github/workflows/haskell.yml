@@ -153,7 +153,7 @@ jobs:
         run: |
           ls -R "${{ steps.download.outputs.download-path }}"
           tar xaf "${{ steps.download.outputs.download-path }}/${{env.artifact}}.tar.zst"
-          find "${{env.artifact}}" -name '.ghc.environment.*" -exec cp {} . \;'
+          cp "${{env.artifact}}"/.ghc.environment.* .
           ls -R
       - name: Run Tests
         shell: bash
