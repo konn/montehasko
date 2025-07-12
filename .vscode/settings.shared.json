@@ -7,5 +7,7 @@
         "match": "(\\.cabal|\\.l?hs)$"
       }
     ]
-  }
+  },
+  "haskell.sessionLoading": "multipleComponents",
+  "haskell.plugin.rename.config.crossModule": true
 }
