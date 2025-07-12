@@ -202,6 +202,7 @@ jobs:
       with:
         enable-stack: false
         cabal-version: ${{env.cabal-version}}
+        cabal-update: true
         ghc-version: ${{env.ghc}}
     - name: Restore ~/.cabal/store
       uses: actions/cache/restore@v3
