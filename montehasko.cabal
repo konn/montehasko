@@ -29,6 +29,7 @@ common defaults
   default-language: GHC2024
   build-depends: base >=4.18 && <5
   default-extensions:
+    BlockArguments
     OverloadedLabels
     OverloadedRecordDot
     RecordWildCards
@@ -65,15 +66,23 @@ test-suite montehasko-test
   import: defaults
   default-language: GHC2024
   -- cabal-gild: discover test --exclude=test/Main.hs
-  other-modules:
+  other-modules: Math.Statistics.RandomVarSpec
   -- other-extensions:
   type: exitcode-stdio-1.0
   hs-source-dirs: test
   main-is: Main.hs
-  build-depends: montehasko
+  -- cabal-gild: discover test --exclude=test/Main.hs
+  other-modules: Math.Statistics.RandomVarSpec
+  build-depends:
+    falsify,
+    montehasko,
+    tasty,
+    tasty-hunit,
+
   build-tool-depends:
     doctest:cabal-doctest,
     doctest:doctest,
+    tasty-discover:tasty-discover,
 
 test-suite montehasko-doctest
   import: defaults
