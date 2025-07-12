@@ -25,7 +25,6 @@ common defaults
     -Wpartial-fields
     -Wredundant-constraints
 
-  build-depends: random
   default-language: GHC2024
   build-depends: base >=4.18 && <5
   default-extensions:
@@ -47,20 +46,15 @@ library
   other-modules:
   hs-source-dirs: src
   build-depends:
-    comonad,
-    distributive,
     foldl,
     free,
-    generic-lens,
     kan-extensions,
     lens,
     linear,
     profunctors,
-    semigroupoids,
-    splitmix,
+    random,
     streaming,
     strict,
-    transformers,
 
 test-suite montehasko-test
   import: defaults

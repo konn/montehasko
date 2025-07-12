@@ -7,7 +7,6 @@ module Math.Statistics.MonteCarlo.Integration (
   expectOnFan,
 ) where
 
-import Data.Generics.Labels ()
 import Linear
 import Math.Statistics.MonteCarlo.Sampler
 import Math.Statistics.RandomVar qualified as RVar
