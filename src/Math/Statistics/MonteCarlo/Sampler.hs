@@ -3,6 +3,8 @@
 module Math.Statistics.MonteCarlo.Sampler (
   Estimator (..),
   estimateBy,
+  estimateMaybeBy,
+  filtered,
   count,
   MonteCarlo (..),
   runMonteCarlo,
@@ -15,6 +17,8 @@ module Math.Statistics.MonteCarlo.Sampler (
 ) where
 
 import Control.Foldl qualified as L
+import Control.Lens (_Just)
+import Control.Monad (guard)
 import Data.Functor.Identity (Identity (..))
 import Data.Monoid (Ap (..))
 import Data.Profunctor (Profunctor (..))
@@ -32,7 +36,7 @@ data Estimator i a where
   Estimator ::
     forall i a b.
     (Fractional b) =>
-    {evaluate :: i -> b, extract :: b -> a} ->
+    {evaluate :: i -> (Maybe b), extract :: b -> a} ->
     Estimator i a
 
 deriving via Ap (Estimator i) a instance (Num a) => Num (Estimator i a)
@@ -64,7 +68,15 @@ instance (Floating a) => Floating (Estimator i a) where
 
 estimateBy :: (Fractional a) => (i -> a) -> Estimator i a
 {-# INLINE estimateBy #-}
+estimateBy eval = Estimator (Just . eval) id
+
+estimateMaybeBy :: (Fractional a) => (i -> Maybe a) -> Estimator i a
 {-# INLINE estimateMaybeBy #-}
+estimateMaybeBy eval = Estimator eval id
+
+filtered :: (i -> Bool) -> Estimator i a -> Estimator i a
+filtered p (Estimator eval extract) =
+  Estimator (\i -> guard (p i) *> eval i) extract
 
 count :: (Fractional a) => (i -> Bool) -> Estimator i a
 count p = estimateBy (\i -> if p i then 1 else 0)
@@ -109,7 +121,7 @@ iterateEstimator mc rvar = L.purely S.scan (estimate mc) . samples rvar
 
 estimate :: Estimator i a -> L.Fold i a
 {-# INLINE estimate #-}
-estimate (Estimator eval extract) = extract <$> L.premap eval L.mean
+estimate (Estimator eval extract) = extract <$> L.premap eval (L.handles _Just L.mean)
 
 instance Functor (Estimator i) where
   fmap f (Estimator evaluate extract) =
@@ -169,11 +181,11 @@ instance Fractional Zero where
   fromRational _ = Zero
 
 instance Applicative (Estimator i) where
-  pure = Estimator (\_ -> Zero) . const
+  pure = Estimator (\_ -> Just Zero) . const
   {-# INLINE pure #-}
 
   (Estimator eval1 extract1) <*> (Estimator eval2 extract2) =
-    Estimator (\i -> P (eval1 i) $ eval2 i) (\(P l r) -> extract1 l (extract2 r))
+    Estimator (\i -> P <$> eval1 i <*> eval2 i) (\(P l r) -> extract1 l (extract2 r))
   {-# INLINE (<*>) #-}
 
 instance Profunctor Estimator where
