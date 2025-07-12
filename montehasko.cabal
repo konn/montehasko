@@ -93,4 +93,6 @@ test-suite montehasko-doctest
   main-is: Main.hs
   build-depends:
     doctest-parallel,
+    linear,
     montehasko,
+    random,
