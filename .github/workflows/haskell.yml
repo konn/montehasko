@@ -109,6 +109,11 @@ jobs:
       with:
         path: dist-newstyle
         name: dist-newstyle-${{matrix.plan.name}}
+    - name: Upload ~/.cabal/store directory (for doctest)
+      uses: actions/upload-artifact@v4
+      with:
+        path: ~/.cabal/store
+        name: store-${{matrix.plan.name}}
     - name: List Binaries
       id: list-bins
       shell: bash
@@ -131,6 +136,7 @@ jobs:
       plan: ${{matrix.plan.name}}
       artifact: artifact-${{matrix.plan.name}}
       dist-name: dist-newstyle-${{matrix.plan.name}}
+      store: store-${{matrix.plan.name}}
     runs-on: ubuntu-latest
     steps:
       - name: Fail when Corresponding Build didn't succeed
@@ -149,6 +155,11 @@ jobs:
         with:
           name: ${{env.dist-name}}
           path: dist-newstyle
+      - name: Download artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: ${{env.store}}
+          path: ~/.cabal/store
       - name: Decompress and locate artifacts
         run: |
           ls -R "${{ steps.download.outputs.download-path }}"
