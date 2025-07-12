@@ -1,4 +1,4 @@
-{-# LANGUAGE DerivingVia #-} 
+{-# LANGUAGE DerivingVia #-}
 
 module Math.Statistics.MonteCarlo.Sampler (
   Estimator (..),
