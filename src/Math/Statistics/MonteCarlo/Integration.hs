@@ -4,7 +4,7 @@
 module Math.Statistics.MonteCarlo.Integration (
   integrator,
   integrate,
-  fanIntegrator,
+  expectOnFan,
 ) where
 
 import Data.Generics.Labels ()
@@ -38,13 +38,13 @@ integrate :: (RandomGen g) => (Double, Double) -> (Double -> Double) -> Int -> g
 integrate bounds f = evalMonteCarlo (integrator bounds f)
 
 {- |
-Integrate over the fan-region defined by \(x^2 + y^2 < 1, x,y > 0\).
+Expected value on the fan-region defined by \(x^2 + y^2 < 1, x,y > 0\).
 
->>> 2 * pi * evalMonteCarlo (fanIntegrator (\(V2 x y) -> sqrt $ 1 - x * x - y * y)) 100000 (mkStdGen 42)
+>>> 2 * pi * evalMonteCarlo (expectOnFan (\(V2 x y) -> sqrt $ 1 - x * x - y * y)) 100000 (mkStdGen 42)
 4.180798994170995
 -}
-fanIntegrator :: (V2 Double -> Double) -> MonteCarlo (V2 Double) Double
-fanIntegrator f = MonteCarlo {space, estimator}
+expectOnFan :: (V2 Double -> Double) -> MonteCarlo (V2 Double) Double
+expectOnFan f = MonteCarlo {space, estimator}
   where
     space = V2 <$> RVar.uniformR (0, 1) <*> RVar.uniformR (0, 1)
     estimator = filtered ((< 1) . quadrance) (estimateBy f)
