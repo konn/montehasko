@@ -104,11 +104,11 @@ jobs:
         path: ${{env.artifact-name}}.tar.zst
         name: ${{env.artifact-name}}
         retention-days: 1
-    - name: Upload dist directory (for doctest)
-      uses: actions/upload-artifact@v4
-      with:
-        path: dist-newstyle
-        name: dist-newstyle-${{matrix.plan.name}}
+    # - name: Upload dist directory (for doctest)
+    #   uses: actions/upload-artifact@v4
+    #   with:
+    #     path: dist-newstyle
+    #     name: dist-newstyle-${{matrix.plan.name}}
     - name: List Binaries
       id: list-bins
       shell: bash
@@ -144,16 +144,17 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: ${{env.artifact}}
-      - name: Download artifacts
-        uses: actions/download-artifact@v4
-        with:
-          name: ${{env.dist-name}}
-          path: dist-newstyle
+      # - name: Download artifacts
+      #   uses: actions/download-artifact@v4
+      #   with:
+      #     name: ${{env.dist-name}}
+      #     path: dist-newstyle
       - name: Decompress and locate artifacts
         run: |
           ls -R "${{ steps.download.outputs.download-path }}"
           tar xaf "${{ steps.download.outputs.download-path }}/${{env.artifact}}.tar.zst"
-          find "${{env.artifact}}" -name '*.ghc.environment.*" -exec cp {} . \;'
+          find "${{env.artifact}}" -name '.ghc.environment.*" -exec cp {} . \;'
+          ls -R
       - name: Run Tests
         shell: bash
         run: |
