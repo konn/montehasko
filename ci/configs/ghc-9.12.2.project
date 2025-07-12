@@ -668,7 +668,7 @@ constraints:
   doctest-exitcode-stdio ==0.0,
   doctest-extract ==0.1.2,
   doctest-lib ==0.1.1.1,
-  doctest-parallel ==0.3.1.1,
+  doctest-parallel ==0.4,
   doldol ==0.4.1.2,
   do-list ==1.0.1,
   domain ==0.1.1.5,
