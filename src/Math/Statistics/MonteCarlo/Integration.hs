@@ -5,6 +5,7 @@ module Math.Statistics.MonteCarlo.Integration (
   integrator,
   integrate,
   expectOnFan,
+  expectOnFanPolar,
 ) where
 
 import Linear
@@ -47,6 +48,22 @@ expectOnFan f = MonteCarlo {space, estimator}
   where
     space = V2 <$> RVar.uniformR (0, 1) <*> RVar.uniformR (0, 1)
     estimator = filtered ((< 1) . quadrance) (estimateBy f)
+
+{- |
+Expected value on the fan-region defined by \(x^2 + y^2 < 1, x,y > 0\).
+
+>>> 2 * pi * evalMonteCarlo (expectOnFanPolar (\(V2 x y) -> sqrt $ 1 - x * x - y * y)) 200000 (mkStdGen 42)
+4.188068924281632
+-}
+expectOnFanPolar :: (V2 Double -> Double) -> MonteCarlo (V2 Double) Double
+expectOnFanPolar f = MonteCarlo {space, estimator}
+  where
+    -- Note: We must use r dr instead of dr
+    space = V2 <$> (sqrt <$> RVar.uniformR (0, 1)) <*> RVar.uniformR (0, pi / 2)
+    estimator = estimateBy \(V2 r theta) ->
+      let x = r * cos theta
+          y = r * sin theta
+       in f (V2 x y)
 
 -- Needed for doctest:
 
