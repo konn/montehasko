@@ -148,6 +148,7 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: ${{env.dist-name}}
+          path: dist-newstyle
       - name: Decompress and locate artifacts
         run: |
           ls -R "${{ steps.download.outputs.download-path }}"
