@@ -74,6 +74,9 @@ estimateMaybeBy :: (Fractional a) => (i -> Maybe a) -> Estimator i a
 {-# INLINE estimateMaybeBy #-}
 estimateMaybeBy eval = Estimator eval id
 
+{- | Shrink the entire sampling space by a predicate.
+'Applicative' instance takes intersection of all the predicates.
+-}
 filtered :: (i -> Bool) -> Estimator i a -> Estimator i a
 filtered p (Estimator eval extract) =
   Estimator (\i -> guard (p i) *> eval i) extract

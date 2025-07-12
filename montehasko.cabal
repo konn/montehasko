@@ -74,3 +74,13 @@ test-suite montehasko-test
   build-tool-depends:
     doctest:cabal-doctest,
     doctest:doctest,
+
+test-suite montehasko-doctest
+  import: defaults
+  default-language: GHC2024
+  type: exitcode-stdio-1.0
+  hs-source-dirs: doctest
+  main-is: Main.hs
+  build-depends:
+    doctest-parallel,
+    montehasko,
