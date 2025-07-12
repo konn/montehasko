@@ -39,13 +39,25 @@ library
   exposed-modules:
     Math.Statistics.MonteCarlo.Integration
     Math.Statistics.MonteCarlo.Pi
+    Math.Statistics.MonteCarlo.Sampler
+    Math.Statistics.RandomVar
 
   -- cabal-gild: discover src --include=src/**/Internal.hs
   other-modules:
   hs-source-dirs: src
   build-depends:
+    comonad,
+    distributive,
+    foldl,
+    free,
     generic-lens,
+    kan-extensions,
     lens,
+    linear,
+    profunctors,
+    semigroupoids,
+    splitmix,
+    streaming,
     strict,
     transformers,
 

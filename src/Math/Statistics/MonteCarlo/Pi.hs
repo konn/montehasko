@@ -1,39 +1,38 @@
-{-# LANGUAGE BlockArguments #-}
-{-# LANGUAGE OverloadedLabels #-}
-{-# LANGUAGE OverloadedRecordDot #-}
-{-# LANGUAGE RecordWildCards #-}
-{-# LANGUAGE NoFieldSelectors #-}
+module Math.Statistics.MonteCarlo.Pi (
+  piMonteCarlo,
+  calcPi,
+  calcPi_,
+  iteratePi,
+  piSampleSpace,
+) where
 
-module Math.Statistics.MonteCarlo.Pi (calculatePi) where
-
-import Control.Lens
-import Control.Monad (replicateM_, when)
-import Control.Monad.Trans.Class (MonadTrans (..))
-import Control.Monad.Trans.State.Strict (execStateT)
-import Data.Generics.Labels ()
-import GHC.Generics (Generic)
+import Linear
+import Math.Statistics.MonteCarlo.Sampler
+import Math.Statistics.RandomVar (RVar)
+import Math.Statistics.RandomVar qualified as RVar
+import Streaming.Prelude (Of, Stream)
 import System.Random.Stateful
 
-data PiState = PiState {totalCount :: !Int, insideCount :: !Int}
-  deriving (Show, Eq, Ord, Generic)
+piMonteCarlo :: MonteCarlo (V2 Double) Double
+piMonteCarlo = MonteCarlo piSampleSpace piEstimator
 
-initialState :: PiState
-initialState = PiState{totalCount = 0, insideCount = 0}
+piSampleSpace :: RVar (V2 Double)
+piSampleSpace = V2 <$> RVar.uniformR (0, 1) <*> RVar.uniformR (0, 1)
 
--- | Estimate the value of Pi using the Monte Carlo method.
-calculatePi :: (StatefulGen g m) => Int -> g -> m Double
-calculatePi n gen = estimate <$> execStateT (replicateM_ n go) initialState
- where
-  estimate PiState{..} =
-    4 * fromIntegral insideCount / fromIntegral totalCount
-  go = do
-    x <- lift $ uniformRM (0.0 :: Double, 1) gen
-    y <- lift $ uniformRM (0.0 :: Double, 1) gen
-    #totalCount += 1
-    when (x * x + y * y <= 1) do
-      #insideCount += 1
+piEstimator :: Estimator (V2 Double) Double
+piEstimator = 4 * count ((<= 1) . norm)
 
--- >>> runStateGenT (mkStdGen 42) $ calculatePi 10000
--- (3.1264,StdGen {unStdGen = SMGen 14787112805465166444 13679457532755275413})
--- >>> runStateGenT (mkStdGen 42) $ calculatePi 100000
--- (3.14628,StdGen {unStdGen = SMGen 8850561856670699532 13679457532755275413})
+calcPi :: (RandomGen g) => Int -> g -> (Double, g)
+calcPi = runMonteCarlo piMonteCarlo
+
+calcPi_ :: (RandomGen g) => Int -> g -> Double
+calcPi_ = evalMonteCarlo piMonteCarlo
+
+iteratePi :: (RandomGen g, Monad m) => g -> Stream (Of Double) m r
+iteratePi gen = iterateMonteCarlo piMonteCarlo gen
+
+-- >>> calcPi_ 10000 (mkStdGen 42)
+-- 3.125999999999995
+
+-- >>> calcPi_ 1000000 (mkStdGen 42)
+-- 3.141816000000033
