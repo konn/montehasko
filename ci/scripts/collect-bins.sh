@@ -77,10 +77,11 @@ ${CABAL_PLAN} list-bins | grep "${local_pkgs[@]}" | while read -r TARG; do
         echo "Binary not found. Skipped."
     fi
 done
+cp ./.ghc.environment.* "${DEST}/"
+
 echo "[*] Collected. Compressing..."
 
 TARBALL="${DEST}.tar.zst"
 tar --use-compress-program="zstdmt -8" -caf "${TARBALL}" "./${1}"
 echo "[*] Compressed as: ${TARBALL}"
 
-cp ./.ghc.environment.* "${DEST}/"
