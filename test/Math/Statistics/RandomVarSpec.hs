@@ -32,3 +32,11 @@ test_uniformR = testProperty "uniformR rvar generates values in the specified ra
   F.assert $
     P.satisfies ("a", \a -> l <= a && a <= u)
       .$ ("fst (sample (uniformR (l, u)) gen)", fst $ sample (uniformR (l, u)) gen)
+
+test_ap_independent :: TestTree
+test_ap_independent = testProperty "liftA2 on rvar is independent to each other" do
+  seed <- F.gen $ G.inRange $ R.between (minBound, maxBound :: Word64)
+  let gen = mkStdGen64 seed
+      ((l, r), _) = sample ((,) <$> uniform <*> uniform) gen
+  F.assert $
+    P.ne .$ ("l", l :: Int) .$ ("r", r :: Int)
