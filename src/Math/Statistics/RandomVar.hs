@@ -1,11 +1,18 @@
+{-# LANGUAGE ApplicativeDo #-}
 {-# LANGUAGE BlockArguments #-}
 {-# LANGUAGE DerivingVia #-}
 {-# LANGUAGE ImpredicativeTypes #-}
 
 module Math.Statistics.RandomVar (
   RVar (),
+
+  -- ** Distribution
   uniform,
   uniformR,
+  normal,
+  standardNormal,
+
+  -- ** Sampling
   sample,
   sampleM,
   samples,
@@ -43,6 +50,19 @@ uniform = embed Uniform
 uniformR :: (UniformRange a) => (a, a) -> RVar a
 {-# INLINE uniformR #-}
 uniformR range = embed (UniformR range)
+
+-- | A random variable that follows the standard normal distribution.
+standardNormal :: (Floating a, UniformRange a) => RVar a
+standardNormal = do
+  x <- uniformR (0, 1)
+  y <- uniformR (0, 1)
+  pure $ sqrt (-2 * log x) * cos (2 * pi * y)
+
+-- | A random variable @'normal' mu sigma@  follows the normal distribution with mean @mu@ and variance @sigma^2@.
+normal :: (Floating a, UniformRange a) => a -> a -> RVar a
+normal mu sigma = do
+  z <- standardNormal
+  pure $ mu + sigma * z
 
 sample :: (RandomGen g) => RVar a -> g -> (a, g)
 sample rv g = runStateGen g (sampleM rv)
