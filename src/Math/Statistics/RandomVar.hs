@@ -1,4 +1,5 @@
 {-# LANGUAGE BlockArguments #-}
+{-# LANGUAGE DerivingVia #-}
 {-# LANGUAGE ImpredicativeTypes #-}
 
 module Math.Statistics.RandomVar (
@@ -18,6 +19,7 @@ module Math.Statistics.RandomVar (
 
 import Control.Applicative.Free.Fast
 import Data.Functor.Coyoneda
+import Data.Monoid qualified as Mon
 import Data.Strict.Tuple
 import Streaming.Prelude (Of, Stream)
 import Streaming.Prelude qualified as S
@@ -74,17 +76,7 @@ samplesN n rv =
     )
     . (:!: n)
 
-instance (Num a) => Num (RVar a) where
-  (+) = liftA2 (+)
-  {-# INLINE (+) #-}
-  (*) = liftA2 (*)
-  {-# INLINE (*) #-}
-  (-) = liftA2 (-)
-  {-# INLINE (-) #-}
-  negate = fmap negate
-  abs = fmap abs
-  signum = fmap signum
-  fromInteger = pure . fromInteger
+deriving via Mon.Ap RVar a instance (Num a) => Num (RVar a)
 
 instance (Fractional a) => Fractional (RVar a) where
   (/) = liftA2 (/)
@@ -93,3 +85,41 @@ instance (Fractional a) => Fractional (RVar a) where
   {-# INLINE recip #-}
   fromRational = pure . fromRational
   {-# INLINE fromRational #-}
+
+instance (Floating a) => Floating (RVar a) where
+  pi = pure pi
+  {-# INLINE pi #-}
+  exp = fmap exp
+  {-# INLINE exp #-}
+  log = fmap log
+  {-# INLINE log #-}
+  sqrt = fmap sqrt
+  {-# INLINE sqrt #-}
+  (**) = liftA2 (**)
+  {-# INLINE (**) #-}
+  logBase = liftA2 logBase
+  {-# INLINE logBase #-}
+  sin = fmap sin
+  {-# INLINE sin #-}
+  cos = fmap cos
+  {-# INLINE cos #-}
+  tan = fmap tan
+  {-# INLINE tan #-}
+  asin = fmap asin
+  {-# INLINE asin #-}
+  acos = fmap acos
+  {-# INLINE acos #-}
+  atan = fmap atan
+  {-# INLINE atan #-}
+  sinh = fmap sinh
+  {-# INLINE sinh #-}
+  cosh = fmap cosh
+  {-# INLINE cosh #-}
+  tanh = fmap tanh
+  {-# INLINE tanh #-}
+  asinh = fmap asinh
+  {-# INLINE asinh #-}
+  acosh = fmap acosh
+  {-# INLINE acosh #-}
+  atanh = fmap atanh
+  {-# INLINE atanh #-}

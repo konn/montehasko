@@ -16,6 +16,7 @@ module Math.Statistics.MonteCarlo.Sampler (
 
 import Control.Foldl qualified as L
 import Data.Functor.Identity (Identity (..))
+import Data.Monoid (Ap (..))
 import Data.Profunctor (Profunctor (..))
 import GHC.Generics (Generic, Generic1)
 import Math.Statistics.RandomVar (RVar, samples, samplesN)
@@ -34,23 +35,36 @@ data Estimator i a where
     {evaluate :: i -> b, extract :: b -> a} ->
     Estimator i a
 
-instance (Num a) => Num (Estimator i a) where
-  (+) = liftA2 (+)
-  (*) = liftA2 (*)
-  (-) = liftA2 (-)
-  negate = fmap negate
-  abs = fmap abs
-  signum = fmap signum
-  fromInteger n = pure (fromInteger n)
+deriving via Ap (Estimator i) a instance (Num a) => Num (Estimator i a)
 
 instance (Fractional a) => Fractional (Estimator i a) where
   (/) = liftA2 (/)
   recip = fmap recip
   fromRational r = pure (fromRational r)
 
+instance (Floating a) => Floating (Estimator i a) where
+  pi = pure pi
+  exp = fmap exp
+  log = fmap log
+  sqrt = fmap sqrt
+  (**) = liftA2 (**)
+  logBase = liftA2 logBase
+  sin = fmap sin
+  cos = fmap cos
+  tan = fmap tan
+  asin = fmap asin
+  acos = fmap acos
+  atan = fmap atan
+  sinh = fmap sinh
+  cosh = fmap cosh
+  tanh = fmap tanh
+  asinh = fmap asinh
+  acosh = fmap acosh
+  atanh = fmap atanh
+
 estimateBy :: (Fractional a) => (i -> a) -> Estimator i a
 {-# INLINE estimateBy #-}
-estimateBy eval = Estimator eval id
+{-# INLINE estimateMaybeBy #-}
 
 count :: (Fractional a) => (i -> Bool) -> Estimator i a
 count p = estimateBy (\i -> if p i then 1 else 0)
@@ -117,6 +131,26 @@ instance (Fractional a, Fractional b) => Fractional (P a b) where
   P x1 x2 / P y1 y2 = P (x1 / y1) (x2 / y2)
   recip (P x1 x2) = P (recip x1) (recip x2)
   fromRational r = P (fromRational r) (fromRational r)
+
+instance (Floating a, Floating b) => Floating (P a b) where
+  pi = P pi pi
+  exp (P x1 x2) = P (exp x1) (exp x2)
+  log (P x1 x2) = P (log x1) (log x2)
+  sqrt (P x1 x2) = P (sqrt x1) (sqrt x2)
+  P x1 x2 ** P y1 y2 = P (x1 ** y1) (x2 ** y2)
+  logBase (P x1 x2) (P y1 y2) = P (logBase x1 y1) (logBase x2 y2)
+  sin (P x1 x2) = P (sin x1) (sin x2)
+  cos (P x1 x2) = P (cos x1) (cos x2)
+  tan (P x1 x2) = P (tan x1) (tan x2)
+  asin (P x1 x2) = P (asin x1) (asin x2)
+  acos (P x1 x2) = P (acos x1) (acos x2)
+  atan (P x1 x2) = P (atan x1) (atan x2)
+  sinh (P x1 x2) = P (sinh x1) (sinh x2)
+  cosh (P x1 x2) = P (cosh x1) (cosh x2)
+  tanh (P x1 x2) = P (tanh x1) (tanh x2)
+  asinh (P x1 x2) = P (asinh x1) (asinh x2)
+  acosh (P x1 x2) = P (acosh x1) (acosh x2)
+  atanh (P x1 x2) = P (atanh x1) (atanh x2)
 
 data Zero = Zero
   deriving (Show, Eq, Ord, Generic)
