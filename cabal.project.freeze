@@ -309,6 +309,7 @@ constraints:
   cabal-clean ==0.2.20230609,
   cabal-debian ==5.2.6,
   cabal-doctest ==1.0.11,
+  cabal-doctest +cabal-doctest,
   cabal-file ==0.1.1,
   cabal-fix ==0.1.0.0,
   cabal-flatpak ==0.1.2,

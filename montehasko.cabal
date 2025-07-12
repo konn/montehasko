@@ -71,3 +71,6 @@ test-suite montehasko-test
   hs-source-dirs: test
   main-is: Main.hs
   build-depends: montehasko
+  build-tool-depends:
+    doctest:cabal-doctest,
+    doctest:doctest,
