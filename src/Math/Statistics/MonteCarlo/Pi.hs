@@ -39,6 +39,8 @@ calcPi_ = evalMonteCarlo piMonteCarlo
 iteratePi :: (RandomGen g, Monad m) => g -> Stream (Of Double) m r
 iteratePi gen = iterateMonteCarlo piMonteCarlo gen
 
+-- Needed for doctest:
+
 {- $setup
 >>> import System.Random.Stateful (mkStdGen)
 >>> import Linear

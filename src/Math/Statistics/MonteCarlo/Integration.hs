@@ -49,6 +49,8 @@ fanIntegrator f = MonteCarlo {space, estimator}
     space = V2 <$> RVar.uniformR (0, 1) <*> RVar.uniformR (0, 1)
     estimator = filtered ((< 1) . quadrance) (estimateBy f)
 
+-- Needed for doctest:
+
 {- $setup
 >>> import System.Random.Stateful (mkStdGen)
 >>> import Linear
