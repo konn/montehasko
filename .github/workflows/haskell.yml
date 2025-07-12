@@ -104,6 +104,11 @@ jobs:
         path: ${{env.artifact-name}}.tar.zst
         name: ${{env.artifact-name}}
         retention-days: 1
+    - name: Upload dist directory (for doctest)
+      uses: actions/upload-artifact@v4
+      with:
+        path: dist-newstyle
+        name: dist-newstyle-${{matrix.plan.name}}
     - name: List Binaries
       id: list-bins
       shell: bash
@@ -125,6 +130,7 @@ jobs:
       project-file: ${{matrix.plan.path}}
       plan: ${{matrix.plan.name}}
       artifact: artifact-${{matrix.plan.name}}
+      dist-name: dist-newstyle-${{matrix.plan.name}}
     runs-on: ubuntu-latest
     steps:
       - name: Fail when Corresponding Build didn't succeed
@@ -138,6 +144,10 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: ${{env.artifact}}
+      - name: Download artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: ${{env.dist-name}}
       - name: Decompress and locate artifacts
         run: |
           ls -R "${{ steps.download.outputs.download-path }}"
