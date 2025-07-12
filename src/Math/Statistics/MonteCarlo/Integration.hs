@@ -20,7 +20,7 @@ integrator (lb, ub) f
   | otherwise = MonteCarlo {space, estimator}
   where
     space = RVar.uniformR (lb, ub)
-    estimator = estimateBy f
+    estimator = ((ub - lb) *) <$> estimateBy f
 
 {- |
 Integrate a unary function over a specified interval using Monte Carlo method.
