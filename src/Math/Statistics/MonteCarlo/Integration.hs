@@ -6,16 +6,9 @@ module Math.Statistics.MonteCarlo.Integration (
 ) where
 
 import Data.Generics.Labels ()
-import GHC.Generics (Generic)
 import Math.Statistics.MonteCarlo.Sampler
 import Math.Statistics.RandomVar qualified as RVar
 import System.Random.Stateful
-
-data IntegrationState = IntegrationState
-  { totalCount :: !Int
-  , sumValue :: !Double
-  }
-  deriving (Show, Eq, Generic)
 
 integrator :: (Double, Double) -> (Double -> Double) -> MonteCarlo Double Double
 integrator (lb, ub) f
