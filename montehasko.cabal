@@ -76,6 +76,7 @@ test-suite montehasko-test
   build-depends:
     falsify,
     montehasko,
+    random,
     tasty,
     tasty-hunit,
 
