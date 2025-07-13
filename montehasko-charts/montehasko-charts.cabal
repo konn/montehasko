@@ -1,0 +1,111 @@
+cabal-version: 3.4
+name: montehasko-charts
+version: 0.1.0.0
+description: Please see the README on GitHub at <https://github.com/konn/monteahsko/montehasko-charts#readme>
+homepage: https://github.com/konn/monteahsko#readme
+bug-reports: https://github.com/konn/monteahsko/issues
+author: Hiromi ISHII
+maintainer: konn.jinro_at_gmail.com
+copyright: (c) Hiromi ISHII 2025- present
+license: BSD-3-Clause
+license-file: LICENSE
+build-type: Simple
+tested-with:
+  ghc ==9.10.2
+
+extra-doc-files:
+  CHANGELOG.md
+  README.md
+
+source-repository head
+  type: git
+  location: https://github.com/konn/monteahsko
+  subdir: montehasko-charts
+
+common defaults
+  autogen-modules: Paths_montehasko_charts
+  other-modules: Paths_montehasko_charts
+  ghc-options:
+    -Wall
+    -Wcompat
+    -Widentities
+    -Wincomplete-record-updates
+    -Wincomplete-uni-patterns
+    -Wmissing-export-lists
+    -Wmissing-home-modules
+    -Wpartial-fields
+    -Wredundant-constraints
+    -Wunused-packages
+
+  default-language: GHC2024
+  build-depends: base >=4.7 && <5
+
+library
+  import: defaults
+  hs-source-dirs: src
+  -- cabal-gild: discover src --exclude=src/**/Internal.hs --exclude=src/**/Internal/**/*.hs
+  exposed-modules:
+    Math.Statistics.MonteCarlo.Chart
+    Math.Statistics.MonteCarlo.Chart.App
+
+  -- cabal-gild: discover src --include=src/**/Internal.hs --include=src/**/Internal/**/*.hs
+  other-modules:
+  build-depends:
+    Chart,
+    Chart-diagrams,
+    bytestring,
+    diagrams,
+    diagrams-rasterific,
+    directory,
+    filepath,
+    lens,
+    linear,
+    montehasko,
+    optparse-applicative,
+    random,
+    streaming,
+    transformers,
+    vector,
+
+executable montehasko-charts
+  import: defaults
+  hs-source-dirs: app
+  main-is: Main.hs
+  -- cabal-gild: discover app --exclude=app/Main.hs
+  other-modules:
+  ghc-options:
+    -threaded
+    -rtsopts
+    -with-rtsopts=-N
+
+  build-depends: montehasko-charts
+
+test-suite montehasko-charts-test
+  import: defaults
+  type: exitcode-stdio-1.0
+  main-is: Test.hs
+  hs-source-dirs: test
+  -- cabal-gild: discover test --exclude=test/Test.hs
+  other-modules:
+  ghc-options:
+    -threaded
+    -O2
+    -rtsopts
+    -with-rtsopts=-N
+
+  build-depends: montehasko-charts
+
+test-suite montehasko-charts-doctest
+  import: defaults
+  type: exitcode-stdio-1.0
+  hs-source-dirs: doctest
+  main-is: DocTest.hs
+  ghc-options:
+    -threaded
+    -rtsopts
+    -O2
+    -with-rtsopts=-N
+
+  build-depends:
+    doctest-parallel,
+    montehasko-charts,

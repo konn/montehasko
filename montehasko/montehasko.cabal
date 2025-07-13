@@ -48,6 +48,7 @@ library
   build-depends:
     foldl,
     free,
+    infinite-list,
     kan-extensions,
     lens,
     linear,

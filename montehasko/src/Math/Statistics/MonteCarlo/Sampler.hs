@@ -1,33 +1,48 @@
+{-# LANGUAGE ApplicativeDo #-}
 {-# LANGUAGE DerivingVia #-}
+{-# LANGUAGE OverloadedRecordDot #-}
 
 module Math.Statistics.MonteCarlo.Sampler (
+  MonteCarlo (..),
+  SomeMonteCarlo (..),
+  runMonteCarlo,
+  evalMonteCarlo,
+  iterateMonteCarlo,
+  iterateMonteCarloN,
   Estimator (..),
   estimateBy,
   estimateMaybeBy,
   filtered,
   count,
-  MonteCarlo (..),
-  runMonteCarlo,
-  evalMonteCarlo,
-  iterateMonteCarlo,
   runEstimator,
   evalEstimator,
   iterateEstimator,
+  iterateEstimatorN,
   estimate,
+
+  -- * Statistics
+  Statistics (..),
+  statistics,
 ) where
 
 import Control.Foldl qualified as L
 import Control.Lens (_Just)
 import Control.Monad (guard)
 import Data.Functor.Identity (Identity (..))
+import Data.List.Infinite (Infinite (..))
+import Data.List.Infinite qualified as Inf
 import Data.Monoid (Ap (..))
 import Data.Profunctor (Profunctor (..))
 import GHC.Generics (Generic, Generic1)
 import Math.Statistics.RandomVar (RVar, samples, samplesN)
 import Streaming (Stream)
-import Streaming.Prelude (Of (..))
+import Streaming.Prelude (Of (..), lazily)
 import Streaming.Prelude qualified as S
-import System.Random (RandomGen)
+import System.Random (RandomGen, SplitGen)
+import System.Random qualified as R
+
+data SomeMonteCarlo a where
+  MkSomeMonteCarlo :: MonteCarlo i a -> SomeMonteCarlo a
 
 data MonteCarlo i a = MonteCarlo {space :: RVar i, estimator :: Estimator i a}
   deriving (Functor, Generic1)
@@ -100,10 +115,19 @@ iterateMonteCarlo ::
 {-# INLINE iterateMonteCarlo #-}
 iterateMonteCarlo (MonteCarlo rvar estim) = iterateEstimator estim rvar
 
+iterateMonteCarloN ::
+  (RandomGen g, Monad m) =>
+  Int ->
+  MonteCarlo i a ->
+  g ->
+  Stream (Of a) m g
+{-# INLINE iterateMonteCarloN #-}
+iterateMonteCarloN n (MonteCarlo rvar estim) = iterateEstimatorN n estim rvar
+
 runEstimator :: (RandomGen g) => Estimator i a -> RVar i -> Int -> g -> (a, g)
 {-# INLINE runEstimator #-}
 runEstimator mc rvar n =
-  (\(a :> b) -> (a, b))
+  lazily
     . runIdentity
     . L.purely S.fold (estimate mc)
     . samplesN n rvar
@@ -122,9 +146,54 @@ iterateEstimator ::
 {-# INLINE iterateEstimator #-}
 iterateEstimator mc rvar = L.purely S.scan (estimate mc) . samples rvar
 
+iterateEstimatorN ::
+  (RandomGen g, Monad m) =>
+  Int ->
+  Estimator i a ->
+  RVar i ->
+  g ->
+  Stream (Of a) m g
+{-# INLINE iterateEstimatorN #-}
+iterateEstimatorN num mc rvar = L.purely S.scan (estimate mc) . samplesN num rvar
+
 estimate :: Estimator i a -> L.Fold i a
 {-# INLINE estimate #-}
 estimate (Estimator eval extract) = extract <$> L.premap eval (L.handles _Just L.mean)
+
+data Statistics a = Statistics
+  { mean :: a
+  , stddev :: a
+  , values :: [a]
+  }
+  deriving (Show, Eq, Ord, Generic)
+
+statistics ::
+  (SplitGen g, Floating a) =>
+  -- | # of random seeds
+  Int ->
+  -- | # of iterations
+  Int ->
+  MonteCarlo i a ->
+  g ->
+  Stream (Of (Statistics a)) Identity g
+statistics numSeeds numSamples mc g =
+  let gfin :< gs = Inf.unfoldr R.splitGen g
+      seeds = Inf.take numSeeds gs
+      streams =
+        foldr
+          (S.zipWith (:))
+          (S.repeat [])
+          $ map
+            (iterateMonteCarloN numSamples mc)
+            seeds
+   in gfin <$ S.map calcStatistics streams
+
+calcStatistics :: (Floating a) => [a] -> Statistics a
+calcStatistics = L.fold do
+  mean <- L.mean
+  stddev <- L.std
+  values <- L.list
+  pure Statistics {..}
 
 instance Functor (Estimator i) where
   fmap f (Estimator evaluate extract) =
