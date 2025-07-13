@@ -223,4 +223,5 @@ jobs:
       with:
         cabal-version: 3.14.2.0
         ghc-version: latest
-    - run: cabal check
+    - run: |
+        find . -name '*.cabal' | while read CABAL; do pushd "$(dirname ${CABAL})"; cabal check; popd ; done 
