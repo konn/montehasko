@@ -129,7 +129,6 @@ defaultMainWith Opts {..} = do
   -- and generates the chart based on the provided options.
   putStrLn $ "Running simulation for target: " <> show target
   putStrLn $ "Output directory: " <> outdir
-  createDirectoryIfMissing True outdir
   g <- case seed of
     Just s -> do
       putStrLn $ "Using user-provided seed: " <> show s
@@ -154,8 +153,10 @@ defaultMainWith Opts {..} = do
             $ statistics numSeeds numIter mc g
   let statDiag = statisticsPlot numRepr stats
       convDiag = convergencePlot stats
-  let statDest = outdir </> printf "%s-statistics-%d-%d.svg" targetName numSeeds numIter
-      convDest = outdir </> printf "%s-convergence-%d-%d.svg" targetName numSeeds numIter
+  let caseDir = outdir </> targetName
+  createDirectoryIfMissing True caseDir
+  let statDest = caseDir </> printf "statistics-%d-%d.svg" numSeeds numIter
+      convDest = caseDir </> printf "convergence-%d-%d.svg" numSeeds numIter
 
   putStrLn $ "Saving statistics to " <> statDest <> "..."
   toFile def statDest statDiag

@@ -19,7 +19,7 @@ statisticsPlot ::
   Int ->
   [(Int, Statistics a)] ->
   EC (Layout Int a) ()
-statisticsPlot n stats = do
+statisticsPlot n (filter ((/= 0) . fst) -> stats) = do
   layout_title .= "Monte Carlo Statistics"
   layout_x_axis . laxis_title .= "K, # of Steps"
   setColors $ cycle $ map opaque [blue, red, orange, yellow, violet]
