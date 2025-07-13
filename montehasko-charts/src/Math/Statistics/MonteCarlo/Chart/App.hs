@@ -3,9 +3,10 @@
 
 module Math.Statistics.MonteCarlo.Chart.App (defaultMain, defaultMainWith) where
 
+import Control.Monad.Trans.Class (lift)
 import GHC.Generics (Generic)
 import Graphics.Rendering.Chart.Backend.Diagrams
-import Graphics.Rendering.Chart.Easy (Default (def), Identity (runIdentity))
+import Graphics.Rendering.Chart.Easy (Default (def), Identity (..))
 import Linear
 import Math.Statistics.MonteCarlo.Chart (convergencePlot, statisticsPlot)
 import Math.Statistics.MonteCarlo.Integration qualified as Int
@@ -13,6 +14,7 @@ import Math.Statistics.MonteCarlo.Pi qualified as Pi
 import Math.Statistics.MonteCarlo.Sampler
 import Options.Applicative
 import Options.Applicative qualified as Opt
+import Streaming qualified as S
 import Streaming.Prelude qualified as S
 import System.Directory (createDirectoryIfMissing)
 import System.FilePath ((</>))
@@ -23,10 +25,12 @@ data Opts = Opts
   { target :: !Target
   , outdir :: !FilePath
   , seed :: !(Maybe Int)
+  , numRepr :: !Int
   , numSeeds :: !Int
   , numIter :: !Int
   , width :: !Int
   , height :: !Int
+  , every :: !Int
   }
   deriving (Show, Eq, Ord, Generic)
 
@@ -82,6 +86,14 @@ optsP =
             <> Opt.help "Number of iterations for each seed."
             <> Opt.showDefault
             <> Opt.value 20000
+      numRepr <-
+        Opt.option Opt.auto $
+          Opt.short 'r'
+            <> Opt.long "num-repr"
+            <> Opt.metavar "INT"
+            <> Opt.showDefault
+            <> Opt.value 4
+            <> Opt.help "Number of representative samples to plot."
       width <-
         Opt.option Opt.auto $
           Opt.short 'w'
@@ -98,6 +110,14 @@ optsP =
             <> Opt.showDefault
             <> Opt.value 512
             <> Opt.help "Width of the output image."
+      every <-
+        Opt.option Opt.auto $
+          Opt.short 'N'
+            <> Opt.long "every"
+            <> Opt.metavar "INT"
+            <> Opt.value 1
+            <> Opt.help "Plot every N-th sample"
+            <> Opt.showDefault
       pure Opts {..}
 
 defaultMain :: IO ()
@@ -107,28 +127,43 @@ defaultMainWith :: Opts -> IO ()
 defaultMainWith Opts {..} = do
   -- Here you would typically call the function that runs the Monte Carlo simulation
   -- and generates the chart based on the provided options.
-  putStrLn $ "Running simulation for target: " ++ show target
-  putStrLn $ "Output directory: " ++ outdir
+  putStrLn $ "Running simulation for target: " <> show target
+  putStrLn $ "Output directory: " <> outdir
   createDirectoryIfMissing True outdir
   g <- case seed of
     Just s -> do
-      putStrLn $ "Using user-provided seed: " ++ show s
+      putStrLn $ "Using user-provided seed: " <> show s
       pure $ mkStdGen s
     Nothing -> newStdGen
   let targetName = getTargetName target
-  let stats :: [Statistics Double]
+  let stats :: [(Int, Statistics Double)]
       stats = case getMC target of
-        MkSomeMonteCarlo mc -> runIdentity $ S.toList_ $ statistics numSeeds numIter mc g
-  let statDiag = statisticsPlot 4 stats
+        MkSomeMonteCarlo mc ->
+          runIdentity
+            $ S.toList_
+            $ S.concats
+            $ S.maps
+              ( \s ->
+                  case runIdentity $ S.next s of
+                    Left r -> pure r
+                    Right (hd, tl) -> do
+                      S.yield hd
+                      lift $ S.effects tl
+              )
+            $ S.chunksOf every
+            $ statistics numSeeds numIter mc g
+  let statDiag = statisticsPlot numRepr stats
       convDiag = convergencePlot stats
-  let statDest = outdir </> printf "statistics-%s-%d-%d.png" targetName numSeeds numIter
-      convDest = outdir </> printf "convergence-%s-%d-%d.png" targetName numSeeds numIter
+  let statDest = outdir </> printf "statistics-%s-%d-%d.svg" targetName numSeeds numIter
+      convDest = outdir </> printf "convergence-%s-%d-%d.svg" targetName numSeeds numIter
 
+  putStrLn $ "Saving statistics to " <> statDest <> "..."
   toFile def statDest statDiag
-  putStrLn $ "Statistics chart saved to: " ++ statDest
+  putStrLn $ "Statistics chart saved to: " <> statDest
 
+  putStrLn $ "Saving convergence to " <> convDest <> "..."
   toFile def convDest convDiag
-  putStrLn $ "Convergence chart saved to: " ++ convDest
+  putStrLn $ "Convergence chart saved to: " <> convDest
 
 getTargetName :: Target -> String
 getTargetName Pi = "pi"

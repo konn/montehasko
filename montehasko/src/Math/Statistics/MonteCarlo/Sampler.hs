@@ -27,7 +27,7 @@ module Math.Statistics.MonteCarlo.Sampler (
 
 import Control.Foldl qualified as L
 import Control.Lens (_Just)
-import Control.Monad (guard)
+import Control.Monad (guard, void)
 import Data.Functor.Identity (Identity (..))
 import Data.List.Infinite (Infinite (..))
 import Data.List.Infinite qualified as Inf
@@ -175,7 +175,7 @@ statistics ::
   Int ->
   MonteCarlo i a ->
   g ->
-  Stream (Of (Statistics a)) Identity g
+  Stream (Of (Int, Statistics a)) Identity g
 statistics numSeeds numSamples mc g =
   let gfin :< gs = Inf.unfoldr R.splitGen g
       seeds = Inf.take numSeeds gs
@@ -186,7 +186,7 @@ statistics numSeeds numSamples mc g =
           $ map
             (iterateMonteCarloN numSamples mc)
             seeds
-   in gfin <$ S.map calcStatistics streams
+   in gfin <$ S.zip (S.each [0 ..]) (void $ S.map calcStatistics streams)
 
 calcStatistics :: (Floating a) => [a] -> Statistics a
 calcStatistics = L.fold do
