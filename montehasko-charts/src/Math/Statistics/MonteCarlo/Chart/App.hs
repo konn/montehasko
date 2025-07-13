@@ -154,8 +154,8 @@ defaultMainWith Opts {..} = do
             $ statistics numSeeds numIter mc g
   let statDiag = statisticsPlot numRepr stats
       convDiag = convergencePlot stats
-  let statDest = outdir </> printf "statistics-%s-%d-%d.svg" targetName numSeeds numIter
-      convDest = outdir </> printf "convergence-%s-%d-%d.svg" targetName numSeeds numIter
+  let statDest = outdir </> printf "%s-statistics-%d-%d.svg" targetName numSeeds numIter
+      convDest = outdir </> printf "%s-convergence-%d-%d.svg" targetName numSeeds numIter
 
   putStrLn $ "Saving statistics to " <> statDest <> "..."
   toFile def statDest statDiag
