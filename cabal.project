@@ -1,4 +1,4 @@
-packages: *.cabal
+packages: */*.cabal
 write-ghc-environment-files: always
 allow-newer:
   doctest-parallel:Cabal
