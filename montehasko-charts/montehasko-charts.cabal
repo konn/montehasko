@@ -54,6 +54,7 @@ library
     Chart,
     Chart-diagrams,
     bytestring,
+    colour,
     diagrams,
     diagrams-rasterific,
     directory,

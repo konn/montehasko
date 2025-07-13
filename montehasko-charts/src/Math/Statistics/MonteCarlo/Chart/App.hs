@@ -1,4 +1,5 @@
 {-# LANGUAGE ApplicativeDo #-}
+{-# LANGUAGE BlockArguments #-}
 {-# LANGUAGE RecordWildCards #-}
 
 module Math.Statistics.MonteCarlo.Chart.App (defaultMain, defaultMainWith) where
@@ -6,7 +7,7 @@ module Math.Statistics.MonteCarlo.Chart.App (defaultMain, defaultMainWith) where
 import Control.Monad.Trans.Class (lift)
 import GHC.Generics (Generic)
 import Graphics.Rendering.Chart.Backend.Diagrams
-import Graphics.Rendering.Chart.Easy (Default (def), Identity (..))
+import Graphics.Rendering.Chart.Easy
 import Linear
 import Math.Statistics.MonteCarlo.Chart (convergencePlot, statisticsPlot)
 import Math.Statistics.MonteCarlo.Integration qualified as Int
@@ -135,7 +136,8 @@ defaultMainWith Opts {..} = do
       pure $ mkStdGen s
     Nothing -> newStdGen
   let targetName = getTargetName target
-  let stats :: [(Int, Statistics Double)]
+      truth = getTargetTruth target
+      stats :: [(Int, Statistics Double)]
       stats = case getMC target of
         MkSomeMonteCarlo mc ->
           runIdentity
@@ -151,8 +153,16 @@ defaultMainWith Opts {..} = do
               )
             $ S.chunksOf every
             $ statistics numSeeds numIter mc g
-  let statDiag = statisticsPlot numRepr stats
-      convDiag = convergencePlot stats
+  let truthPlot :: (Int -> x) -> EC (Layout x Double) ()
+      truthPlot f = plot $ liftEC do
+        plot_lines_style . line_color .= opaque black
+        plot_lines_style . line_dashes .= [15, 5]
+        plot_lines_values .= [[(f i, truth) | (i, _) <- stats, i /= 0]]
+        plot_lines_title .= "Truth"
+      statDiag = do
+        statisticsPlot numRepr stats
+        truthPlot id
+      convDiag = convergencePlot stats >> truthPlot (recip . sqrt . fromIntegral)
   let caseDir = outdir </> targetName
   createDirectoryIfMissing True caseDir
   let statDest = caseDir </> printf "statistics-%d-%d.svg" numSeeds numIter
@@ -165,6 +175,12 @@ defaultMainWith Opts {..} = do
   putStrLn $ "Saving convergence to " <> convDest <> "..."
   toFile def convDest convDiag
   putStrLn $ "Convergence chart saved to: " <> convDest
+
+getTargetTruth :: Target -> Double
+getTargetTruth Pi = pi
+getTargetTruth Integration = pi / 4
+getTargetTruth FanIntegration = 2 / 3
+getTargetTruth FanIntegrationPolar = 2 / 3
 
 getTargetName :: Target -> String
 getTargetName Pi = "pi"
