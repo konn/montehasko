@@ -121,8 +121,14 @@ defaultMainWith Opts {..} = do
         MkSomeMonteCarlo mc -> runIdentity $ S.toList_ $ statistics numSeeds numIter mc g
   let statDiag = statisticsPlot 4 stats
       convDiag = convergencePlot stats
-  toFile def (outdir </> printf "statistics-%s-%d-%d.png" targetName numSeeds numIter) statDiag
-  toFile def (outdir </> printf "convergence-%s-%d-%d.png" targetName numSeeds numIter) convDiag
+  let statDest = outdir </> printf "statistics-%s-%d-%d.png" targetName numSeeds numIter
+      convDest = outdir </> printf "convergence-%s-%d-%d.png" targetName numSeeds numIter
+
+  toFile def statDest statDiag
+  putStrLn $ "Statistics chart saved to: " ++ statDest
+
+  toFile def convDest convDiag
+  putStrLn $ "Convergence chart saved to: " ++ convDest
 
 getTargetName :: Target -> String
 getTargetName Pi = "pi"
