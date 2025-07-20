@@ -984,7 +984,7 @@ constraints:
   ghc-paths ==0.1.0.12,
   ghc-prim installed,
   ghc-source-gen ==0.4.6.0,
-  ghc-tcplugins-extra ==0.4.6,
+  ghc-tcplugins-extra ==0.5,
   ghc-trace-events ==0.1.2.10,
   ghc-typelits-extra ==0.4.8,
   ghc-typelits-knownnat ==0.7.13,
