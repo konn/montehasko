@@ -62,6 +62,7 @@ optsP =
           Opt.long "outdir"
             <> Opt.short 'o'
             <> Opt.metavar "DIR"
+            <> Opt.help "Output directory for the generated charts."
             <> Opt.showDefault
             <> Opt.value "workspace"
       seed <-
@@ -116,7 +117,7 @@ optsP =
           Opt.short 'N'
             <> Opt.long "every"
             <> Opt.metavar "INT"
-            <> Opt.value 1
+            <> Opt.value 100
             <> Opt.help "Plot every N-th sample"
             <> Opt.showDefault
       pure Opts {..}
